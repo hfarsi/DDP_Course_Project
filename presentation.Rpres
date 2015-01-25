@@ -1,0 +1,127 @@
+Natural Disasters in the United States (2001 - 2013)
+========================================================
+author: 
+date: 
+transition: rotate
+transition-speed: slow
+font-family: 'Helvetica'
+Summary 
+========================================================
+- Objective: 
+<small style="font-size:.7em">
+To develop a simple tool to view trends on the natural events occurring across the United States and the impact of the events on the economy (damage to Crops and Properties) and human lives (Deaths and Injuries), and identify the top contenders in reference to the year, event type, and state
+</small>  
+
+- The Application:
+<small style="font-size:.7em">
+Built in shiny, this application provides three widgets to:
+(i) Select and aggregate the data by year, event type, and state. 
+(ii) Select the total count, impact on economy, and impact on health.
+(iii) Select and zoom on the top N (1:50) values.
+</small>
+
+- Source: 
+<small style="font-size:.7em">
+For this application we used the 2001-2013 storm data from the National Climate Data Center of National Oceanic and Atmospheric Administration's (NOAA) http://www.ncdc.noaa.gov/stormevents/.
+</small>
+
+- Launch:
+<small style="font-size:.7em">
+    https://hf-1949.shinyapps.io/DDP_Course_Project/
+</small>
+```{r, echo=FALSE}
+library(plyr)
+library(ggplot2)
+bigdata <- readRDS("cleanedData.rds")
+devents <- ddply(bigdata, "EVENT_TYPE", summarise, No_of_Events = length(EVENT_TYPE), Impact_on_Health = sum(health), Impact_on_Economy = sum(damages))
+dyears  <- ddply(bigdata, "YEAR", summarise, No_of_Events = length(YEAR),
+Impact_on_Health = sum(health), Impact_on_Economy = sum(damages))
+dstates <- ddply(bigdata, "STATE", summarise, No_of_Events = length(STATE),
+Impact_on_Health = sum(health), Impact_on_Economy = sum(damages))
+```
+
+Total number of events reported between 2001 and 2013
+========================================================
+
+```{r echo=FALSE}
+ggplot(dyears, aes(x=YEAR, y=No_of_Events)) +
+    geom_bar(stat="identity", fill="blue", colr="black") + 
+    xlab("Year") + ylab("No. of Events") +
+    ggtitle("Trend in number of events across the country") +
+    theme(axis.text.x = element_text(angle=60, hjust=1))
+```
+<small style="font-size:.6em">
+Certainly there is a steady increase in the number of events, and if we assume that there are no discrepancies in the reported data, this chart supports the growing concern about global warming or some other phenomena affecting the climate.  
+</small>
+
+Loss of lives and economy between 2001 and 2013
+========================================================
+left:50%
+```{r echo=FALSE}
+par(mfrow=c(1,2))
+ggplot(dyears, aes(x=YEAR, y=Impact_on_Economy)) +
+    geom_bar(stat="identity", fill="blue", colr="black") + 
+    xlab("Year") + ylab("Damages") +
+    ggtitle("Impact on the economy") +
+    theme(axis.text.x = element_text(angle=60, hjust=1))
+```
+<small style="font-size:.6em">
+The excessive damage recorded by events in 2005 is due to Hurricane (Typhoon) and Storm Surge/Tide - 90% or $90B. In 2006, California was hit with heavy rain and flood, causing $115B damage to properties in Napa county.    
+</small>
+***
+```{r echo=FALSE}
+ggplot(dyears, aes(x=YEAR, y=Impact_on_Health)) +
+    geom_bar(stat="identity", fill="blue", colr="black") + 
+    xlab("Year") + ylab("Casualties") +
+    ggtitle("Impact on human lives") +
+    theme(axis.text.x = element_text(angle=60, hjust=1))
+```
+
+Top 10 Most Devastating Events Across The United States
+========================================================
+left:50%
+```{r echo=FALSE}
+par(mfrow=c(1,2))
+devents <- devents[order(devents$Impact_on_Economy, decreasing = T),]
+ggplot(devents[1:10,], aes(x=reorder(EVENT_TYPE,Impact_on_Economy), y=Impact_on_Economy)) +
+    geom_bar(stat="identity", fill="blue", colr="black") + 
+    xlab("Event Type") + ylab("Damages ($$) to the Crops and Properties")  +
+    ggtitle("Events with highest impact on the economy per State ") +
+    theme(axis.text.x = element_text(angle=60, hjust=1))
+```
+<small style="font-size:.6em">
+Flood, Hurricane (Typhoon), and Storm Surge/Tide caused the greatest damage to crops and properties in US. 
+</small>
+***
+```{r echo=FALSE}
+devents <- devents[order(devents$Impact_on_Health, decreasing = T),]
+ggplot(devents[1:10,], aes(x=reorder(EVENT_TYPE,Impact_on_Health), y=Impact_on_Health)) +
+    geom_bar(stat="identity", fill="blue", colr="black") + 
+    xlab("Event Type") + ylab("Number of lives impacted") +
+    ggtitle("Events with highest impact on health") +
+    theme(axis.text.x = element_text(angle=60, hjust=1))
+```
+<small style="font-size:.6em">
+Tornado affected nearly 16000 people's lives, followed by excessive heat.
+</small>
+
+Top 10 States Experienced Greater Impact on Their Economy and Health
+========================================================
+left:50%
+```{r echo=FALSE}
+dstates <- dstates[order(dstates$Impact_on_Economy, decreasing = T),]
+ggplot(dstates[1:10,], aes(x=reorder(STATE,Impact_on_Economy), y=Impact_on_Economy)) +
+    geom_bar(stat="identity", fill="blue", colr="black") + 
+    xlab("States") + ylab("Damages") +
+    ggtitle("States experienced highest impact on their economy") +
+    theme(axis.text.x = element_text(angle=60, hjust=1))
+```
+***
+```{r echo=FALSE}
+dstates <- dstates[order(dstates$Impact_on_Health, decreasing = T),]
+ggplot(dstates[1:10,], aes(x=reorder(STATE,Impact_on_Health), y=Impact_on_Health)) +
+    geom_bar(stat="identity", fill="blue", colr="black") + 
+    xlab("States") + ylab("Number of lives impacted") +
+    ggtitle("States experienced highest impact on health") +
+    theme(axis.text.x = element_text(angle=60, hjust=1))
+```
